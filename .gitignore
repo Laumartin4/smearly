@@ -1,5 +1,5 @@
 raw_data/
 .env
-../.ipynb
+__pycache__
 .DS_Store
 
