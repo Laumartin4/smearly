@@ -16,8 +16,7 @@ def initialize_cnn_model(input_shape : tuple) -> Model:
 
     model = Sequential()
 
-    model.add(layers.Input((224, 224, 3)))
-    model.add(layers.Rescaling(1./255))
+    model.add(layers.Input(input_shape))
 
     model.add(layers.Conv2D(filters = 32, kernel_size = (3,3), activation="relu", padding="same"))
     model.add(layers.MaxPooling2D(pool_size=(2, 2), padding="same") )
@@ -63,7 +62,6 @@ def initialize_enb0_model(input_shape : tuple) -> Model:
     print("✅ EfficientNetB0 model initialized")
     return ENB0_model
 
-
 def compile_model(model : Model, learning_rate = 0.001) -> Model:
     """Compile
         optimizer : str, loss : str, metrics : list
@@ -77,49 +75,98 @@ def compile_model(model : Model, learning_rate = 0.001) -> Model:
     print("✅ Model compiled")
     return model
 
-
-def train_cnn_model(
-        model : Model, 
-        X_train : np.array, y_train : np.array, 
-        validation_split = 0.3,
-        batch_size = 256, 
-        epochs = 10,
-        fine_tuning = False) -> Tuple[Model, dict]:
-    """Train model"""
+# def train_model(
+#         model : Model, 
+#         X_train : np.array,
+#         y_train : np.array, 
+#         validation_split = 0.3,
+#         batch_size = 256, 
+#         epochs = 10,
+#         fine_tuning = False):
+#     """Train model"""
     
-    if fine_tuning == True :
+#     if fine_tuning == True :
+#         MODEL = f"{model}.h5"
+
+#         modelCheckpoint = callbacks.ModelCheckpoint(MODEL,
+#                                                 monitor="val_loss",
+#                                                 verbose=0,
+#                                                 save_best_only=True)
+
+#         LRreducer = callbacks.ReduceLROnPlateau(monitor="val_loss",
+#                                             factor=0.1,
+#                                             patience=3,
+#                                             verbose=1,
+#                                             min_lr=0)
+
+#         EarlyStopper = callbacks.EarlyStopping(monitor='val_loss',
+#                                         patience=10,
+#                                         verbose=0,
+#                                         restore_best_weights=True)
+        
+#         callbacks_ft = [modelCheckpoint, LRreducer, EarlyStopper]
+#     else :
+#         callbacks_ft = None
+    
+#     history = model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=validation_split, callbacks= callbacks_ft)
+#     print(f"✅ Model trained on {len(X_train)} images with last global F1 score : {round(np.mean(history.history['f1_score'][epochs-1]))}")
+#     return model, history
+
+def train_model(
+        model: Model,
+        train_data,  # Peut être un dataset TensorFlow ou un tuple (X_train, y_train)
+        validation_split=0.3,
+        batch_size=256,
+        epochs=10,
+        fine_tuning=False):
+    """Train model with support for TensorFlow datasets and NumPy arrays."""
+
+    if fine_tuning:
         MODEL = f"{model}.h5"
 
         modelCheckpoint = callbacks.ModelCheckpoint(MODEL,
-                                                monitor="val_loss",
-                                                verbose=0,
-                                                save_best_only=True)
+                                                    monitor="val_loss",
+                                                    verbose=0,
+                                                    save_best_only=True)
 
         LRreducer = callbacks.ReduceLROnPlateau(monitor="val_loss",
-                                            factor=0.1,
-                                            patience=3,
-                                            verbose=1,
-                                            min_lr=0)
+                                                factor=0.1,
+                                                patience=3,
+                                                verbose=1,
+                                                min_lr=0)
 
         EarlyStopper = callbacks.EarlyStopping(monitor='val_loss',
-                                        patience=10,
-                                        verbose=0,
-                                        restore_best_weights=True)
+                                                patience=10,
+                                                verbose=0,
+                                                restore_best_weights=True)
+
+        callbacks_ft = [modelCheckpoint, LRreducer, EarlyStopper]
+    else:
+        callbacks_ft = None
+
+    if isinstance(train_data, tf.data.Dataset):
+        # Training with TensorFlow dataset
+        history = model.fit(train_data, epochs=epochs, callbacks=callbacks_ft)
+        print(f"✅ Model trained on TensorFlow dataset with last global F1 score : {round(np.mean(history.history['f1_score'][epochs-1]),2)}")
         
-        callbacks = [modelCheckpoint, LRreducer, EarlyStopper]
-    else :
-        callbacks = None
-    
-    history = model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=validation_split, callbacks= callbacks)
-    print(f"✅ Model trained on {len(X_train)} images with max F1 score : {round(np.max(history.history['f1_score']), 2)}")
+    elif isinstance(train_data, tuple) and len(train_data) == 2 and isinstance(train_data[0], np.ndarray) and isinstance(train_data[1], np.ndarray):
+        # Training with NumPy arrays
+        X_train, y_train = train_data
+        X_train = X_train / 255.0 
+        history = model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs,
+                            validation_split=validation_split, callbacks=callbacks_ft)
+        print(f"✅ Model trained on {len(X_train)} images with last global F1 score : {round(np.mean(history.history['f1_score'][epochs-1]),2)}")
+    else:
+        raise ValueError("train_data must be a TensorFlow dataset or a tuple (X_train, y_train) of NumPy arrays.")
+
     return model, history
 
-    
 def evaluate_model(model : Model, X_test : np.array, y_test : np.array) -> dict:
     """Evaluate model"""
     evaluation = model.evaluate(X_test, y_test)
-    print(f"✅ Model evaluated on {len(X_test)} images with F1 score : {round(evaluation[1], 2)}")
+    print(f"✅ Model evaluated on {len(X_test)} images with global F1 score : {round(np.mean(evaluation[1]),2)}")
     return evaluation
+
 
 ######## A REVOIR DEMAIN ########
 
