@@ -62,7 +62,7 @@ def image_file_to_tf(image_path: str) -> tf.Tensor:
     return tf.io.decode_png(image, channels=3)
 
 
-def create_image_dataset(directory: str, batch_size=32, target_size=(224, 224), shuffle=True) -> tf.data.Dataset:
+def create_image_dataset(directory: str, batch_size=32, target_size=(224, 224), shuffle=True, seed=42) -> tf.data.Dataset:
     """
     Uses image_dataset_from_directory from tf to generate a tf.data.Dataset
     from image files in a directory. The directory must contain subdirectories
@@ -73,8 +73,13 @@ def create_image_dataset(directory: str, batch_size=32, target_size=(224, 224), 
       Can be '../raw_data' (local) or 'gs://the-bucket-name/path-to-images-dir'
 
     Returns:
-    - a tf.data.Dataset that can be used in a model.fit(the_ds)
+    - a tf.data.Dataset that can be used in a model.fit(the_ds),
+      with the pixel values normalized (values are float between 0 and 1)
     """
+    def normalize_image(image, label):
+        # Normalize the pixel values to the range [0, 1]
+        return image/255.0, label
+
     return image_dataset_from_directory(
         directory,
         image_size=target_size,
@@ -82,6 +87,6 @@ def create_image_dataset(directory: str, batch_size=32, target_size=(224, 224), 
         labels='inferred',
         label_mode='categorical',
         shuffle=shuffle,
-        seed=42,
+        seed=seed,
         pad_to_aspect_ratio=True
-    )
+    ).map(normalize_image)
