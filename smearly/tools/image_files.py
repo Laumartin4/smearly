@@ -2,12 +2,13 @@ import os
 import sys
 import random
 import shutil
-import tensorflow as tf
+from tensorflow.image import encode_png as tf_encode_png
+from tensorflow.io import write_file as tf_write_file
 
 from smearly.ml_logic.preprocessing import image_file_to_tf, resize_pad_image_tf
 
 def generate_new_img_dir(
-    class_nb_files: dict,
+    class_nb_files: dict[str, int],
     test_size: float | None = 0.3,
     resize_pad_size: tuple[int,int] | None = (224, 224),
     all_img_basedir: str = '../raw_data/all',
@@ -72,8 +73,8 @@ def generate_new_img_dir(
 
                 if resize_pad_size is not None:
                     preprocessed_image = resize_pad_image_tf(image_file_to_tf(source_img_path), target_size=resize_pad_size, normalize=False)
-                    png_image = tf.image.encode_png(preprocessed_image)
-                    tf.io.write_file(target_img_path, png_image)
+                    png_image = tf_encode_png(preprocessed_image)
+                    tf_write_file(target_img_path, png_image)
                 else:
                     shutil.copy2(source_img_path, target_img_path)
 
@@ -89,3 +90,23 @@ def generate_new_img_dir(
         move_preproc_images(files_train, os.path.join(target_dir, 'train'))
     else:
         move_preproc_images(files_picked, target_dir)
+
+
+# from <project_root>/smearly we can run `python -m tools.image_files healthy 30 rubbish 50`
+
+def main():
+    if len(sys.argv[1:]) % 2 != 0 or len(sys.argv[1:]) == 0:
+        print('I only take an even number of arguments like: dirname1 nb1 dirname2 nb2 (...)', file=sys.stderr)
+
+    args = sys.argv[1:]
+    class_nb_files = {dir: int(nb) for dir, nb in zip(args[::2], args[1::2])}
+
+    try:
+        generate_new_img_dir(class_nb_files)
+        return 0
+    except Exception as e:
+        print(e)
+        return -1
+
+if __name__ == "__main__":
+    sys.exit(main())
