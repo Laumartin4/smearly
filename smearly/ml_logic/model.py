@@ -171,11 +171,11 @@ def evaluate_model(model : Model, X_test : np.array, y_test : np.array) -> dict:
 def train_model_ds(
         model: Model,
         train_data,  # Can be a TensorFlow dataset or a tuple (X_train, y_train)
-        validation_data=None,  # Can be a TensorFlow dataset or a tuple (X_val, y_val)
-        validation_split=0.3,
-        batch_size=256,
-        epochs=10,
-        fine_tuning=False):
+        validation_data = None,  # Can be a TensorFlow dataset or a tuple (X_val, y_val)
+        validation_split = 0.3,
+        batch_size = 256,
+        epochs = 10,
+        fine_tuning = False):
     """Train model with support for TensorFlow datasets and NumPy arrays."""
 
     if fine_tuning:
