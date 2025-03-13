@@ -3,13 +3,13 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing import image_dataset_from_directory
 
 
-def resize_pad_image_tf(image: Any, target_size: tuple[int,int]=(224, 224), normalize: bool=True) -> tf.Tensor:
+def resize_pad_image_tf(image: Any, target_size: tuple[int,int] | None=(224, 224), normalize: bool=True) -> tf.Tensor:
     """
     Preprocesses an image by resizing, padding (with black), and normalizing it while maintaining the aspect ratio.
 
     Args:
     - image: A Tensor of type string. 0-D. The PNG-encoded image. Hint: use image_file_to_tf() to generate this.
-    - target_size (tuple): Target size (height, width) of the output image (default is 224x224).
+    - target_size (tuple): Target size (height, width) of the output image (default is 224x224) or None to skip resizing.
     - normalize (bool): pixel values will be divided by 255 if True, untouched otherwise
 
     The image function parameter can be produced with this code:
@@ -20,9 +20,9 @@ def resize_pad_image_tf(image: Any, target_size: tuple[int,int]=(224, 224), norm
     Returns:
     - image (tf.Tensor): The preprocessed image ready for model input.
     """
-
-    # Resize the image to the target size while maintaining aspect ratio and pad if necessary
-    image = tf.image.resize_with_pad(image, target_size[0], target_size[1], method='bilinear')
+    if target_size is not None:
+        # Resize the image to the target size while maintaining aspect ratio and pad if necessary
+        image = tf.image.resize_with_pad(image, target_size[0], target_size[1], method='bilinear')
 
     if normalize is True:
         # Normalize the image to [0, 1]
