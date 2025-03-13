@@ -168,6 +168,57 @@ def evaluate_model(model : Model, X_test : np.array, y_test : np.array) -> dict:
     return evaluation
 
 
+def train_model_ds(
+        model: Model,
+        train_data,  # Can be a TensorFlow dataset or a tuple (X_train, y_train)
+        validation_data=None,  # Can be a TensorFlow dataset or a tuple (X_val, y_val)
+        validation_split=0.3,
+        batch_size=256,
+        epochs=10,
+        fine_tuning=False):
+    """Train model with support for TensorFlow datasets and NumPy arrays."""
+
+    if fine_tuning:
+        MODEL = f"{model}.h5"
+
+        modelCheckpoint = callbacks.ModelCheckpoint(MODEL,
+                                                    monitor="val_loss",
+                                                    verbose=0,
+                                                    save_best_only=True)
+
+        LRreducer = callbacks.ReduceLROnPlateau(monitor="val_loss",
+                                                factor=0.1,
+                                                patience=3,
+                                                verbose=1,
+                                                min_lr=0)
+
+        EarlyStopper = callbacks.EarlyStopping(monitor='val_loss',
+                                                patience=10,
+                                                verbose=0,
+                                                restore_best_weights=True)
+
+        callbacks_ft = [modelCheckpoint, LRreducer, EarlyStopper]
+    else:
+        callbacks_ft = None
+
+    if isinstance(train_data, tf.data.Dataset):
+        # Training with TensorFlow dataset
+
+        history = model.fit(train_data, epochs=epochs, callbacks=callbacks_ft, validation_data=validation_data)
+        print(f"✅ Model trained on TensorFlow dataset with last global F1 score : {round(np.mean(history.history['f1_score'][-1]), 2)}")
+
+    elif isinstance(train_data, tuple) and len(train_data) == 2 and isinstance(train_data[0], (np.ndarray, tf.data.Dataset, tf.Tensor)) and isinstance(train_data[1], (np.ndarray, tf.data.Dataset, tf.Tensor)):
+        # Training with NumPy arrays
+        X_train, y_train = train_data
+        X_train = X_train / 255.0 
+        history = model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs,
+                            validation_split=validation_split, callbacks=callbacks_ft)
+        print(f"✅ Model trained on {len(X_train)} images with last global F1 score : {round(np.mean(history.history['f1_score'][-1]), 2)}")
+    else:
+        raise ValueError("train_data must be a TensorFlow dataset or a tuple (X_train, y_train) of NumPy arrays.")
+
+    return model, history
+
 ######## A REVOIR DEMAIN ########
 
 def predict(model : Model, X : np.array) -> np.array:
