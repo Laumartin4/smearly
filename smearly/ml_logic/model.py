@@ -206,8 +206,8 @@ def train_model_ds(
 
         history = model.fit(train_data, epochs=epochs, callbacks=callbacks_ft, validation_data=validation_data)
         print(f"✅ Model trained on TensorFlow dataset with last global F1 score : {round(np.mean(history.history['f1_score'][-1]), 2)}")
-        
-    elif isinstance(train_data, tuple) and len(train_data) == 2 and isinstance(train_data[0], np.ndarray) and isinstance(train_data[1], np.ndarray):
+
+    elif isinstance(train_data, tuple) and len(train_data) == 2 and isinstance(train_data[0], (np.ndarray, tf.data.Dataset, tf.Tensor)) and isinstance(train_data[1], (np.ndarray, tf.data.Dataset, tf.Tensor)):
         # Training with NumPy arrays
         X_train, y_train = train_data
         X_train = X_train / 255.0 
