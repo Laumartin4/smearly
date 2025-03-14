@@ -9,6 +9,36 @@ def train_val_size(
     """
     Function to define the train and validation repartition with the desired number of images per class
 
+    Example use:
+
+    ```python
+    val_size = [0.59,0.34,0.07]
+    train_size = [0.50,0.35,0.15]
+    set_class_nb_files = train_val_size(val_size,train_size,"../raw_data/all/unhealthy_bothcells_augmented",0.3)
+
+    # Would/Could yield for `set_class_nb_files`:
+
+    {
+        'train': {
+            'bothcells': 0,
+            'healthy': 18992,
+            'rubbish': 27132,
+            'unhealthy': 0,
+            'unhealthy_bothcells': 4070,
+            'unhealthy_bothcells_augmented': 4070
+        },
+        'val': {
+            'bothcells': 0,
+            'healthy': 7907,
+            'rubbish': 13721,
+            'unhealthy': 0,
+            'unhealthy_bothcells': 1628,
+            'unhealthy_bothcells_augmented': 0
+        }
+    }
+    ```
+
+
     Args:
      - val_distribution - 3 numbers [rubbish, healthy, unhealthy]
      - train_distribution - 3 numbers [rubbish, healthy, unhealthy]
