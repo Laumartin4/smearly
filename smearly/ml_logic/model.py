@@ -46,6 +46,9 @@ def initialize_cnn_model(input_shape : tuple) -> Model:
 
 def initialize_enb0_model(input_shape : tuple) -> Model:
     """Initialize EfficientNetB0 model
+
+    /!\ BEWARE the input pixel values must not be normalized in this model (keep [0-255])
+
     Args: input_shape (tuple)
     Returns: Model
     """
