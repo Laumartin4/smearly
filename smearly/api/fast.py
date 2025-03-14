@@ -2,9 +2,11 @@
 import pandas as pd
 #IMPORT d'une fonction type load_model
 #IMPORT du preprocessing (choisir les fonctions)
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from ml_logic.preprocessing import image_file_to_tf, create_image_dataset, resize_pad_image_tf
+from smearly.ml_logic.preprocessing import image_file_to_tf, create_image_dataset, resize_pad_image_tf
+
+
 
 app = FastAPI()
 
@@ -17,30 +19,33 @@ app.add_middleware(
 )
 
 
-app.state.model = #load_model ou autre fonction qui fait tourner le modèle
+# app.state.model = #load_model ou autre fonction qui fait tourner le modèle
 
-model = app.state.model
+# model = app.state.model
 
+# def preproc_file_input(file_path):
+#     input_file_preprocessed = image_file_to_tf(file_path)
+#     return input_file_preprocessed
 
-@app.post('/upload_file')
-async def upload_file(file: UploadFile | None = None):
-    if not file :
-        return f'No file uploaded'
-    else :
-        return f'Your file named {file.filename} has been successfully loaded'
+# preproc_file_input(file)
 
-
-def preproc_file_input(file):
-    input_file_preprocessed = image_file_to_tf(file_path)
-    return input_file_preprocessed
+#clarifier quel type d'objet est retourné par le preprocessing
 
 
-@app.get('/predict')
-async def predict(input_file_preprocessed):
-    prediction = model.predict(input_file_preprocessed)
-    return {'healthy' : prediction['healthy'],
-            'unhealthy' : prediction['unhealthy'],
-            'rubbish' : prediction['rubbish']}
+@app.post('/predict')
+async def predict(request: Request):
+    data = await request.body()
+    print(data)
+    # prediction = model.predict(data)
+    # return {'healthy' : prediction['healthy'],
+    #         'unhealthy' : prediction['unhealthy'],
+    #         'rubbish' : prediction['rubbish']}
+
+
+# @app.get('/')
+# def root():
+#     return {'reply':'toto'}
+
 
     # if (model.predict['healthy'] > model.predict['unhealthy']) and
     # (model.predict['healthy'] > model.predict['rubbish']) :
