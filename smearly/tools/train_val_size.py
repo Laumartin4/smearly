@@ -63,8 +63,8 @@ def train_val_size(
     if sum(val_distribution) > 1.0:
         val_distribution = [x / 100.0 for x in val_distribution]
 
-    unhealthy_bothcells_augmented_and_unhealthy_bothcells_size = 2*len(os.listdir(path))
-
+    unhealthy_bothcells_augmented_and_unhealthy_bothcells_size = len(os.listdir(path))/10
+    
     total_size = unhealthy_bothcells_augmented_and_unhealthy_bothcells_size/train_distribution[2]
 
     val_size = total_size*test_val_split
