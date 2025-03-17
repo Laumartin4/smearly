@@ -25,8 +25,8 @@ run_preprocess:
 	python -c 'from smearly.interface.main import preprocess; preprocess()'
 
 run_train:
-  python smearly/ml_logic/model.py
-	#python -c 'from smearly.interface.main import train; train()'
+  #python smearly/ml_logic/model.py
+	python -c 'from smearly.interface.main import train; train()'
 
 # run_pred:
 # 	python -c 'from smearly.interface.main import pred; pred()'
