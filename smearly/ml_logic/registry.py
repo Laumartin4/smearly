@@ -10,12 +10,14 @@ from smearly.params import *
 
 def save_model(model: keras.Model = None) -> None:
     """
-    Persist trained model locally on the hard drive at f"{LOCAL_REGISTRY_PATH}/models/{timestamp}.h5"
-    - if MODEL_TARGET='gcs', also persist it in your bucket on GCS at "models/{timestamp}.h5" --> unit 02 only
-    - if MODEL_TARGET='mlflow', also persist it on MLflow instead of GCS (for unit 0703 only) --> unit 03 only
+    Persist trained model locally on the hard drive at f"models/model_{timestamp}.h5"
+    - if MODEL_TARGET='gcs', also persist it in your bucket on GCS at "models/model_{timestamp}.h5"
     """
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
+
+    # Create "models" dir if doesn't exist
+    os.makedirs('models', exist_ok=True)
 
     # Save model locally
     model_path = os.path.join("models", f"model_{timestamp}.h5")
@@ -29,7 +31,7 @@ def save_model(model: keras.Model = None) -> None:
         model_filename = model_path.split("/")[-1] # e.g. "20230208-161047.h5" for instance
         client = storage.Client()
         bucket = client.bucket(BUCKET_NAME)
-        blob = bucket.blob(f"models/{model_filename}")
+        blob = bucket.blob(f"models/model_{model_filename}")
         blob.upload_from_filename(model_path)
 
         print("✅ Model saved to GCS")
@@ -42,11 +44,10 @@ def save_model(model: keras.Model = None) -> None:
 def load_model(model_filename: str = 'model.h5') -> keras.Model:
     """
     Return a saved model:
-    - locally (latest one in alphabetical order)
-    - or from GCS (most recent one) if MODEL_TARGET=='gcs'  --> for unit 02 only
-    - or from MLFLOW (by "stage") if MODEL_TARGET=='mlflow' --> for unit 03 only
+    - locally form a "models" dir, using `model_filename`
+    - or from GCS (most recent one) if MODEL_LOADING_MODE=='gcs'
 
-    Return None (but do not Raise) if no model is found
+    Return None or raise if no model is found
 
     """
 
