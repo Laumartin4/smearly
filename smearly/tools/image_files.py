@@ -9,7 +9,6 @@ from smearly.ml_logic.preprocessing import image_file_to_tf, resize_pad_image_tf
 
 def generate_new_img_dir(
     set_class_nb_files: dict[str, dict[str,int]],
-    #test_size: float | None = 0.3,
     resize_pad_size: tuple[int,int] | None = (224, 224),
     all_img_basedir: str = '../raw_data/all',
     target_dir: str = '../raw_data/reduced',
