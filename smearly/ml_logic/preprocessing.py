@@ -38,7 +38,7 @@ def resize_pad_image_tf(image: Any, target_size: tuple[int,int] | None=(224, 224
 
 def image_file_to_tf(image_path: str) -> tf.Tensor:
     """
-    Preprocesses an image by resizing, padding (with black), and normalizing it while maintaining the aspect ratio.
+    Loads an image file from disk, and returns it as a tf.Tensor
 
     Args:
     - image_path: Path to the image file (must be PNG but JPG and GIF are supported as well).
