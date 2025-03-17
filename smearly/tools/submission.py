@@ -7,7 +7,7 @@ def prediction_to_csv(y_pred : np.array , filename : str = "predictions.csv"):
     """
     y_pred = y_pred.argmax(axis = 1)
     
-    y_test_df = pd.read_csv("raw_data/isbi2025-ps3c-test-dataset.csv")
+    y_test_df = pd.read_csv("../raw_data/isbi2025-ps3c-test-dataset.csv")
     y_test_df["label"] = pd.DataFrame(y_pred)
     y_test_df['label']= y_test_df['label'].map({0: 'healthy', 1: 'rubbish', 2: 'unhealthy'})
     
