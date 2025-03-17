@@ -2,9 +2,11 @@
 import pandas as pd
 #IMPORT d'une fonction type load_model
 #IMPORT du preprocessing (choisir les fonctions)
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from smearly.ml_logic.preprocessing import image_file_to_tf, create_image_dataset, resize_pad_image_tf
+from smearly.ml_logic.preprocessing import image_file_to_tf, resize_pad_image_tf
+from ml_logic.preprocessing import resize_pad_image_tf, image_file_to_tf
+
 
 
 
@@ -23,37 +25,23 @@ app.add_middleware(
 
 # model = app.state.model
 
-# def preproc_file_input(file_path):
-#     input_file_preprocessed = image_file_to_tf(file_path)
-#     return input_file_preprocessed
-
-# preproc_file_input(file)
-
-#clarifier quel type d'objet est retourné par le preprocessing
-
 
 @app.post('/predict')
-async def predict(request: Request):
-    data = await request.body()
-    print(data)
-    # prediction = model.predict(data)
-    # return {'healthy' : prediction['healthy'],
-    #         'unhealthy' : prediction['unhealthy'],
-    #         'rubbish' : prediction['rubbish']}
+async def predict(file: UploadFile = File(...)):
 
+     try:
+        # Lire et ouvrir l'image envoyée
+        image = Image.open(io.BytesIO(await file.read()))
 
-# @app.get('/')
-# def root():
-#     return {'reply':'toto'}
+        # Prétraiter l'image en utilisant les fonctions importées
+        resized_image = resize_pad_image_tf(image)  # Redimensionner et pad l'image
+        preprocessed_image = image_file_to_tf(resized_image)  # Convertir l'image pour TensorFlow
 
+        # Effectuer la prédiction
+        prediction = model.predict(preprocessed_image)
 
-    # if (model.predict['healthy'] > model.predict['unhealthy']) and
-    # (model.predict['healthy'] > model.predict['rubbish']) :
-    #     f'The picture shows healthy cells'
+        # Retourner la prédiction sous forme de réponse JSON
+        return JSONResponse(content={"prediction": prediction.tolist()})
 
-    # elif (model.predict['unhealthy'] > model.predict['healthy']) and
-    # (model.predict['unhealthy'] > model.predict['rubbish']) :
-    #     f 'The picture shows unhealthy cells'
-
-    # else :
-    #     f 'The picture cannot be interpreted'
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
