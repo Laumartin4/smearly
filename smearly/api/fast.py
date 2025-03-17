@@ -6,9 +6,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from smearly.ml_logic.preprocessing import image_file_to_tf, resize_pad_image_tf
 from ml_logic.preprocessing import resize_pad_image_tf, image_file_to_tf
+from ml_logic.model import load_model
 
-
-
+path = '/home/charlotteb/code/Laumartin4/smearly/smearly/api/model_064'
 
 app = FastAPI()
 
@@ -23,7 +23,7 @@ app.add_middleware(
 
 # app.state.model = #load_model ou autre fonction qui fait tourner le modèle
 
-# model = app.state.model
+model = load_model("model_064")
 
 
 @app.post('/predict')
