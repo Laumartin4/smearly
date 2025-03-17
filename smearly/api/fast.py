@@ -1,14 +1,9 @@
 
 import pandas as pd
-#IMPORT d'une fonction type load_model
-#IMPORT du preprocessing (choisir les fonctions)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from smearly.ml_logic.preprocessing import image_file_to_tf, resize_pad_image_tf
-from ml_logic.preprocessing import resize_pad_image_tf, image_file_to_tf
+from ml_logic.preprocessing import resize_pad_image_tf
 from ml_logic.model import load_model
-
-path = '/home/charlotteb/code/Laumartin4/smearly/smearly/api/model_064'
 
 app = FastAPI()
 
@@ -21,7 +16,6 @@ app.add_middleware(
 )
 
 
-# app.state.model = #load_model ou autre fonction qui fait tourner le modèle
 
 model = load_model("model_064")
 
@@ -35,10 +29,9 @@ async def predict(file: UploadFile = File(...)):
 
         # Prétraiter l'image en utilisant les fonctions importées
         resized_image = resize_pad_image_tf(image)  # Redimensionner et pad l'image
-        preprocessed_image = image_file_to_tf(resized_image)  # Convertir l'image pour TensorFlow
 
         # Effectuer la prédiction
-        prediction = model.predict(preprocessed_image)
+        prediction = model.predict(resized_image)
 
         # Retourner la prédiction sous forme de réponse JSON
         return JSONResponse(content={"prediction": prediction.tolist()})
