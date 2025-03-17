@@ -173,3 +173,31 @@ if __name__ == "__main__":
     save_model(model, "model.h5")
     print("🎉 Model training finished")
     
+   
+def initialize_enb0_model_layers(input_shape: tuple) -> Model:
+    """Initialize EfficientNetB0 model
+
+    /!\ BEWARE the input pixel values must not be normalized in this model (keep [0-255])
+
+    Args: input_shape (tuple)
+    Returns: Model
+    """
+
+    base_model = EfficientNetB0(input_shape=input_shape, include_top=False, weights="imagenet")
+    base_model.trainable = False
+    x = base_model.output
+    x = layers.GlobalAveragePooling2D()(x)
+    
+    # Add three additional layers before the last layer
+    x = layers.Dense(128, activation='relu')(x)
+    x = layers.Dropout(0.5)(x)  # Optional: Add dropout for regularization
+    x = layers.Dense(64, activation='relu')(x)
+    x = layers.Dense(32, activation='relu')(x)
+    
+    # Output layer
+    prediction = layers.Dense(3, activation='softmax')(x)
+
+    ENB0_model = Model(inputs=base_model.input, outputs=prediction)
+
+    print("✅ EfficientNetB0 model initialized")
+    return ENB0_model
