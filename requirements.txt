@@ -7,4 +7,5 @@ pandas
 matplotlib
 seaborn
 scikit-learn
-google-cloud
+google-cloud-storage
+colorama
