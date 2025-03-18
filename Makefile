@@ -28,11 +28,11 @@ run_preprocess:
 
 run_train:
 	#python smearly/ml_logic/model.py
-	python -c 'from smearly.interface.main import train; train()'
+	nohup python -c 'from smearly.interface.main import train; train()' > train_$(date '+%Y%m%d_%H%m').log &
 
 run_preproc_and_train:
 	$(MAKE) run_preprocess
-	nohup $(MAKE) run_train > train_$(date '+%Y%m%d_%H%m').log
+	$(MAKE) run_train
 
 # run_pred:
 # 	python -c 'from smearly.interface.main import pred; pred()'
