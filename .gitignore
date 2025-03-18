@@ -130,4 +130,9 @@ dmypy.json
 # New files / folders from MACs
 .DS_Store
 
+# Saved model files
+*.h5
+
 # Project Dir
+notebooks/
+

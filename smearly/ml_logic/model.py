@@ -1,11 +1,18 @@
+import os
+import sys
+import time
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
 import tensorflow as tf
-import os
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras import layers, optimizers, callbacks
 from tensorflow.keras.applications import EfficientNetB0
+
+from smearly.ml_logic.preprocessing import create_image_dataset
+
 
 
 def initialize_cnn_model(input_shape : tuple) -> Model:
@@ -46,6 +53,9 @@ def initialize_cnn_model(input_shape : tuple) -> Model:
 
 def initialize_enb0_model(input_shape : tuple) -> Model:
     """Initialize EfficientNetB0 model
+
+    /!\ BEWARE the input pixel values must not be normalized in this model (keep [0-255])
+
     Args: input_shape (tuple)
     Returns: Model
     """
@@ -62,6 +72,34 @@ def initialize_enb0_model(input_shape : tuple) -> Model:
     print("✅ EfficientNetB0 model initialized")
     return ENB0_model
 
+def initialize_enb0_model_layers(input_shape: tuple) -> Model:
+    """Initialize EfficientNetB0 model
+
+    /!\ BEWARE the input pixel values must not be normalized in this model (keep [0-255])
+
+    Args: input_shape (tuple)
+    Returns: Model
+    """
+
+    base_model = EfficientNetB0(input_shape=input_shape, include_top=False, weights="imagenet")
+    base_model.trainable = False
+    x = base_model.output
+    x = layers.GlobalAveragePooling2D()(x)
+    
+    # Add three additional layers before the last layer
+    x = layers.Dense(128, activation='relu')(x)
+    x = layers.Dropout(0.5)(x)  # Optional: Add dropout for regularization
+    x = layers.Dense(64, activation='relu')(x)
+    x = layers.Dense(32, activation='relu')(x)
+    
+    # Output layer
+    prediction = layers.Dense(3, activation='softmax')(x)
+
+    ENB0_model = Model(inputs=base_model.input, outputs=prediction)
+
+    print(":white_check_mark: EfficientNetB0 model initialized")
+    return ENB0_model
+
 def compile_model(model : Model, learning_rate = 0.001) -> Model:
     """Compile
         optimizer : str, loss : str, metrics : list
@@ -70,51 +108,15 @@ def compile_model(model : Model, learning_rate = 0.001) -> Model:
     adam = optimizers.Adam(learning_rate = learning_rate)
     model.compile(loss='categorical_crossentropy',
               optimizer=adam,
-              metrics=['f1_score'])
+              metrics=['f1_score', 'accuracy', 'precision', 'recall'])
     
     print("✅ Model compiled")
     return model
 
-# def train_model(
-#         model : Model, 
-#         X_train : np.array,
-#         y_train : np.array, 
-#         validation_split = 0.3,
-#         batch_size = 256, 
-#         epochs = 10,
-#         fine_tuning = False):
-#     """Train model"""
-    
-#     if fine_tuning == True :
-#         MODEL = f"{model}.h5"
-
-#         modelCheckpoint = callbacks.ModelCheckpoint(MODEL,
-#                                                 monitor="val_loss",
-#                                                 verbose=0,
-#                                                 save_best_only=True)
-
-#         LRreducer = callbacks.ReduceLROnPlateau(monitor="val_loss",
-#                                             factor=0.1,
-#                                             patience=3,
-#                                             verbose=1,
-#                                             min_lr=0)
-
-#         EarlyStopper = callbacks.EarlyStopping(monitor='val_loss',
-#                                         patience=10,
-#                                         verbose=0,
-#                                         restore_best_weights=True)
-        
-#         callbacks_ft = [modelCheckpoint, LRreducer, EarlyStopper]
-#     else :
-#         callbacks_ft = None
-    
-#     history = model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=validation_split, callbacks= callbacks_ft)
-#     print(f"✅ Model trained on {len(X_train)} images with last global F1 score : {round(np.mean(history.history['f1_score'][epochs-1]))}")
-#     return model, history
-
 def train_model(
         model: Model,
-        train_data,  # Peut être un dataset TensorFlow ou un tuple (X_train, y_train)
+        train_data,  # Can be a TensorFlow dataset or a tuple (X_train, y_train)
+        validation_data=None,  # Can be a TensorFlow dataset or a tuple (X_val, y_val)
         validation_split=0.3,
         batch_size=256,
         epochs=10,
@@ -146,16 +148,17 @@ def train_model(
 
     if isinstance(train_data, tf.data.Dataset):
         # Training with TensorFlow dataset
-        history = model.fit(train_data, epochs=epochs, callbacks=callbacks_ft)
-        print(f"✅ Model trained on TensorFlow dataset with last global F1 score : {round(np.mean(history.history['f1_score'][epochs-1]),2)}")
-        
-    elif isinstance(train_data, tuple) and len(train_data) == 2 and isinstance(train_data[0], np.ndarray) and isinstance(train_data[1], np.ndarray):
+
+        history = model.fit(train_data, epochs=epochs, callbacks=callbacks_ft, validation_data=validation_data)
+        print(f"✅ Model trained on TensorFlow dataset with last global F1 score : {round(np.mean(history.history['f1_score'][-1]), 2)}")
+
+    elif isinstance(train_data, tuple) and len(train_data) == 2 and isinstance(train_data[0], (np.ndarray, tf.data.Dataset, tf.Tensor)) and isinstance(train_data[1], (np.ndarray, tf.data.Dataset, tf.Tensor)):
         # Training with NumPy arrays
         X_train, y_train = train_data
         X_train = X_train / 255.0 
         history = model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs,
                             validation_split=validation_split, callbacks=callbacks_ft)
-        print(f"✅ Model trained on {len(X_train)} images with last global F1 score : {round(np.mean(history.history['f1_score'][epochs-1]),2)}")
+        print(f"✅ Model trained on {len(X_train)} images with last global F1 score : {round(np.mean(history.history['f1_score'][-1]), 2)}")
     else:
         raise ValueError("train_data must be a TensorFlow dataset or a tuple (X_train, y_train) of NumPy arrays.")
 
@@ -167,22 +170,57 @@ def evaluate_model(model : Model, X_test : np.array, y_test : np.array) -> dict:
     print(f"✅ Model evaluated on {len(X_test)} images with global F1 score : {round(np.mean(evaluation[1]),2)}")
     return evaluation
 
-
-######## A REVOIR DEMAIN ########
-
 def predict(model : Model, X : np.array) -> np.array:
     """Predict"""
-    predictions = model.predict(X)
+    X_normalized = X / 255.0
+    predictions = model.predict(X_normalized)
     print("✅ Predictions made")
     return predictions
 
 
-def save_model(model : Model, model_name : str) -> None:    
-    model.save(model_name)
-    print(f"✅ Model saved as {model_name}")
+def save_model(model : Model) -> None:    
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+
+    # Save model locally
+    model_path = os.path.join( "models", f"{timestamp}.h5")
+    model.save(model_path)
+
+    print("✅ Model saved locally")
     
+    # if MODEL_TARGET == "gcs":
+
+    #     model_filename = model_path.split("/")[-1] # e.g. "20230208-161047.h5" for instance
+    #     client = storage.Client()
+    #     bucket = client.bucket(BUCKET_NAME)
+    #     blob = bucket.blob(f"models/{model_filename}")
+    #     blob.upload_from_filename(model_path)
+
+    #     print("✅ Model saved to GCS")
+
+    #     return None
+
+    return None
+    
+    #### A VERIFIER ###
     
 def load_model(model_name : str) -> Model:
     model = tf.keras.models.load_model(model_name)
     print(f"✅ Model loaded from {model_name}")
     return model
+
+if __name__ == "__main__":
+    print("🚀 Starting model training")
+    #data_dir_all = "raw_data/all"
+    #data_dir_reduced = "raw_data/reduced"
+    #data_dir_small = "raw_data/resized_data"
+    
+    data = sys.argv[1]
+    
+    train_ds = create_image_dataset(directory= f"{data}/train")
+    val_ds = create_image_dataset(directory= f"{data}/val")
+    model = initialize_cnn_model((224, 224, 3))
+    model = compile_model(model, learning_rate=0.01)
+    model, history = train_model(model, train_ds, validation_data=val_ds,batch_size=32, epochs=100, fine_tuning=True)
+    save_model(model)
+    print("🎉 Model training finished")
+    
