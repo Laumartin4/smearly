@@ -32,7 +32,7 @@ run_train:
 
 run_preproc_and_train:
 	$(MAKE) run_preprocess
-	$(MAKE) run_train
+	nohup $(MAKE) run_train > train_$(date '+%Y%m%d_%H%m').log
 
 # run_pred:
 # 	python -c 'from smearly.interface.main import pred; pred()'
