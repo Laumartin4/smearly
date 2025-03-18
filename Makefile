@@ -28,6 +28,10 @@ run_train:
 	#python smearly/ml_logic/model.py
 	python -c 'from smearly.interface.main import train; train()'
 
+run_preproc_and_train:
+	run_preprocess
+	run_train
+
 # run_pred:
 # 	python -c 'from smearly.interface.main import pred; pred()'
 
