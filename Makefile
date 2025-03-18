@@ -36,5 +36,5 @@ run_train:
 
 # run_all: run_preprocess run_train run_pred run_evaluate
 
-# run_api:
-# 	uvicorn smearly.api.fast:app --reload
+run_api:
+	uvicorn smearly.api.fast:app --reload
