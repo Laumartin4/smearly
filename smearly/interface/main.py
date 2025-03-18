@@ -30,20 +30,15 @@ def preprocess() -> None:
     else:
         reduced_ds_spec = {
             'train': {
-                'bothcells': 0,
                 'healthy': 950,
                 'rubbish': 1357,
-                'unhealthy': 0,
                 'unhealthy_bothcells': 203,
                 'unhealthy_bothcells_augmented': 203
             },
             'val': {
-                'bothcells': 0,
                 'healthy': 395,
                 'rubbish': 686,
-                'unhealthy': 0,
                 'unhealthy_bothcells': 81,
-                'unhealthy_bothcells_augmented': 0
             }
         }
 
