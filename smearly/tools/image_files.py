@@ -67,6 +67,8 @@ def generate_new_img_dir(
             if not isinstance(nb_files_requested, (int, float)):
                 print(f'[Error!] got {nb_files_requested} for {class_nb_files}, {class_name} but expecting int or float.', file=sys.stderr)
                 return None
+            if nb_files_requested == 0:
+                continue
             if isinstance(nb_files_requested, float):
                 if not (0. <= nb_files_requested <= 1.):
                     print(f'[Error!] when using a float, it must be between 0 and 1, got {nb_files_requested} for {class_nb_files}, {class_name}', file=sys.stderr)
