@@ -52,9 +52,19 @@ async def predict(file: UploadFile = File(...)):
 
         # Make a prediction
         prediction = app.state.model.predict(image_batch)
+        prediction = prediction.squeeze()
 
         # Return the prediction
-        return JSONResponse(content={"prediction": prediction.tolist()})
+        print(f"Prediction type: {type(prediction)}, shape: {prediction.shape}")
+
+        dict_output = {'healthy': float(prediction[0]),
+                       'rubbish': float(prediction[1]),
+                       'unhealthy': float(prediction[2])}
+
+        max_key = max(dict_output, key=dict_output.get)
+
+        return JSONResponse(content={"prediction": dict_output,
+                                     'main class': max_key})
 
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
