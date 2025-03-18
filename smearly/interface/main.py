@@ -38,7 +38,7 @@ def preprocess() -> None:
             'val': {
                 'healthy': 395,
                 'rubbish': 686,
-                'unhealthy_bothcells': 81,
+                'unhealthy_bothcells': 81
             }
         }
 
@@ -46,8 +46,8 @@ def preprocess() -> None:
 
 def train() -> None:
     data = "./raw_data/rebalanced"
-    train_ds = create_image_dataset(directory=os.path.join(data, "train"))
-    val_ds = create_image_dataset(directory=os.path.join(data, "val"))
+    train_ds = create_image_dataset(directory=os.path.join(data, "train"), normalize=False)
+    val_ds = create_image_dataset(directory=os.path.join(data, "val"), normalize=False)
     model = initialize_enb0_model_layers((224, 224, 3))
     model = compile_model(model, learning_rate=0.001)
     model, history = train_model(model = model,
