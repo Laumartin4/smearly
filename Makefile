@@ -17,9 +17,9 @@ download_augmented_images:
 	if [ \! -d raw_data/all/unhealthy_augmented ] ; then gsutil -m cp -r "gs://smearly-data/unhealthy augmented" raw_data/all/ ; mv 'raw_data/all/unhealthy augmented' 'raw_data/all/unhealthy_augmented' ; fi
 
 download_all_images:
-	download_train_images
-	merge_unhealthy_bothcells
-	download_augmented_images
+	$(MAKE) download_train_images
+	$(MAKE) merge_unhealthy_bothcells
+	$(MAKE) download_augmented_images
 
 run_preprocess:
 	python -c 'from smearly.interface.main import preprocess; preprocess()'
@@ -29,8 +29,8 @@ run_train:
 	python -c 'from smearly.interface.main import train; train()'
 
 run_preproc_and_train:
-	run_preprocess
-	run_train
+	$(MAKE) run_preprocess
+	$(MAKE) run_train
 
 # run_pred:
 # 	python -c 'from smearly.interface.main import pred; pred()'
