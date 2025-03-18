@@ -1,7 +1,14 @@
+import os
+import numpy as np
 import pandas as pd
 import tensorflow as tf
+
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing import image_dataset_from_directory
+
+from smearly.ml_logic.registry import load_model
+from smearly.ml_logic.preprocessing import image_file_to_tf, resize_pad_image_tf
+from smearly.tools.submission import prediction_to_csv
 
 
 def create_image_dataset_test(directory: str,
@@ -11,13 +18,13 @@ def create_image_dataset_test(directory: str,
                          normalize: bool=True) -> tf.data.Dataset:
     """
     Uses image_dataset_from_directory from tf to generate a tf.data.Dataset
-    from image files in a directory. 
+    from image files in a directory.
     The directory must contain all the image files for test.
     Resizing cannot be avoided (but will probably be a no-op if source size
     matches target size).
 
     Args:
-    - directory: Path to the parent directory 
+    - directory: Path to the parent directory
       Can be '../raw_data' (local) or 'gs://the-bucket-name/path-to-images-dir'
 
     Returns:
@@ -28,7 +35,7 @@ def create_image_dataset_test(directory: str,
     def normalize_image(image):
         # Normalize the pixel values to the range [0, 1]
         return image/255.0
-    
+
     img_ds = image_dataset_from_directory(
         directory,
         image_size=target_size,
@@ -44,5 +51,36 @@ def create_image_dataset_test(directory: str,
 
 
 
+def predict_for_kaggle_without_tf_ds(
+        model_filename: str='../models/model-064.h5',
+        csv_file_to_predict: str='../csv_files/isbi2025-ps3c-test-dataset.csv',
+        test_images_dir: str='../raw_data/test_ds',
+        chunk_size: int=32,
+        normalize: bool=False
+    ):
+    """
+    Batch predict all images from `csv_file_to_predict`, getting images from
+    `test_images_dir` and using model from `model_filename`.
 
+    Does a "manual" resize of images with resize_pad_image_tf().
 
+    Generates a CSV file with prediction_to_csv() function above.
+    """
+
+    model = load_model(model_filename)
+
+    predictions = np.empty((0, 3))
+    for chunk in pd.read_csv(csv_file_to_predict, chunksize=chunk_size):
+        batch_img_list = []
+        for image_filename in chunk['image_name']:
+            img = resize_pad_image_tf(image_file_to_tf(os.path.join(test_images_dir, image_filename)), normalize=normalize)
+            # expand_dims() not needed if tf.stack is used to put several images in a single tensor
+            #img = tf.expand_dims(img, axis=0)
+            batch_img_list.append(img)
+
+        batch_tensor = tf.stack(batch_img_list, axis=0)
+        batch_predictions = model.predict(batch_tensor)
+
+        predictions = np.vstack((predictions, batch_predictions))
+
+    prediction_to_csv(predictions, src_filename=csv_file_to_predict)
