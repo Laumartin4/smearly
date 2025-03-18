@@ -16,7 +16,7 @@ from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras import layers, optimizers, callbacks
 from tensorflow.keras.applications import EfficientNetB0
 
-
+from smearly.params import *
 
 app = FastAPI()
 
@@ -29,7 +29,7 @@ app.add_middleware(
 )
 
 
-app.state.model = load_model('models/model_064.h5')
+app.state.model = load_model(MODEL_FILENAME)
 
 
 @app.post("/predict")
@@ -47,7 +47,7 @@ async def predict(file: UploadFile = File(...)):
         image_tensor = tf.convert_to_tensor(image_array, dtype=tf.uint8)
 
         # Resize and preprocess the image
-        resized_image = resize_pad_image_tf(image_tensor)  # Ensure (224, 224, 3)
+        resized_image = resize_pad_image_tf(image_tensor, normalize=False)  # Ensure (224, 224, 3)
         image_batch = tf.expand_dims(resized_image, axis=0)  # Add batch dimension (1, 224, 224, 3)
 
         # Make a prediction

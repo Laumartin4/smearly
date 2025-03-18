@@ -9,3 +9,6 @@ seaborn
 scikit-learn
 google-cloud-storage
 colorama
+uvicorn
+fastapi
+python-multipart
