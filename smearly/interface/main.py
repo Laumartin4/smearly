@@ -11,20 +11,15 @@ def preprocess() -> None:
     if os.environ.get("WITH_GPU"):
         reduced_ds_spec = {
             'train': {
-                'bothcells': 0,
                 'healthy': 18992,
                 'rubbish': 27132,
-                'unhealthy': 0,
                 'unhealthy_bothcells': 4070,
                 'unhealthy_bothcells_augmented': 4070
             },
             'val': {
-                'bothcells': 0,
                 'healthy': 7907,
                 'rubbish': 13721,
-                'unhealthy': 0,
-                'unhealthy_bothcells': 1628,
-                'unhealthy_bothcells_augmented': 0
+                'unhealthy_bothcells': 1628
             }
         }
     else:

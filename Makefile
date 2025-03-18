@@ -14,7 +14,7 @@ merge_unhealthy_bothcells:
 	[ -d unhealthy_bothcells ] || cp -a raw_data/all/unhealthy/* raw_data/all/bothcells/* raw_data/all/unhealthy_bothcells
 
 download_augmented_images:
-	if [ \! -d raw_data/all/unhealthy_augmented ] ; then gsutil -m cp -r "gs://smearly-data/unhealthy augmented" raw_data/all/ ; mv 'raw_data/all/unhealthy augmented' 'raw_data/all/unhealthy_augmented' ; fi
+	if [ \! -d raw_data/all/unhealthy_bothcells_augmented ] ; then gsutil -m cp -r "gs://smearly-data/unhealthy augmented" raw_data/all/ ; mv 'raw_data/all/unhealthy augmented' 'raw_data/all/unhealthy_bothcells_augmented' ; fi
 
 download_all_images:
 	$(MAKE) download_train_images
@@ -23,6 +23,8 @@ download_all_images:
 
 run_preprocess:
 	python -c 'from smearly.interface.main import preprocess; preprocess()'
+	mv raw_data/rebalanced/train/unhealthy_bothcells_augmented/* raw_data/rebalanced/train/unhealthy_bothcells/
+	rmdir raw_data/rebalanced/train/unhealthy_bothcells_augmented
 
 run_train:
 	#python smearly/ml_logic/model.py
