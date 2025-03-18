@@ -14,7 +14,7 @@ merge_unhealthy_bothcells:
 	[ -d unhealthy_bothcells ] || cp -a raw_data/all/unhealthy/* raw_data/all/bothcells/* raw_data/all/unhealthy_bothcells
 
 download_augmented_images:
-	if [ \! -d raw_data/all/unhealthy_augmented ] ; then gsutil -m cp -r "gs://smearly-data/unhealthy augmented" raw_data/all/ ; mv 'unhealthy augmented' unhealthy_augmented ; fi
+	if [ \! -d raw_data/all/unhealthy_augmented ] ; then gsutil -m cp -r "gs://smearly-data/unhealthy augmented" raw_data/all/ ; mv 'raw_data/all/unhealthy augmented' 'raw_data/all/unhealthy_augmented' ; fi
 
 download_all_images:
 	download_train_images
