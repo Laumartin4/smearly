@@ -5,7 +5,7 @@ from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from smearly.ml_logic.preprocessing import resize_pad_image_tf
-from smearly.ml_logic.model import load_model
+from smearly.ml_logic.registry import load_model
 from PIL import Image
 import io
 import numpy as np
