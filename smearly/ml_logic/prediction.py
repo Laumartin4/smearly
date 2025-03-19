@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import datetime as dt
 
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing import image_dataset_from_directory
@@ -83,4 +84,6 @@ def predict_for_kaggle_without_tf_ds(
 
         predictions = np.vstack((predictions, batch_predictions))
 
-    prediction_to_csv(predictions, src_filename=csv_file_to_predict)
+        date_time = dt.datetime.now().strftime('%Y%m%d_%H%M')
+
+    prediction_to_csv(predictions, dest_filename=f'test_predictions_{date_time}.csv', src_filename=csv_file_to_predict)
