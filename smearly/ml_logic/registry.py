@@ -41,7 +41,7 @@ def save_model(model: keras.Model = None) -> None:
     return None
 
 
-def load_model(model_filename: str = 'model.h5') -> keras.Model:
+def load_model(local_model_path: str = 'model/model.h5') -> keras.Model:
     """
     Return a saved model:
     - locally form a "models" dir, using `model_filename`
@@ -53,9 +53,6 @@ def load_model(model_filename: str = 'model.h5') -> keras.Model:
 
     if MODEL_LOADING_MODE == "local":
         print(Fore.BLUE + f"\nLoad latest model from local registry..." + Style.RESET_ALL)
-
-        # Get the latest model version name by the timestamp on disk
-        local_model_path = os.path.join("models", model_filename)
 
         if not os.path.isfile(local_model_path):
             raise FileNotFoundError(local_model_path, 'not found.')

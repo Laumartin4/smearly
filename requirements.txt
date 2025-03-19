@@ -9,6 +9,6 @@ seaborn
 scikit-learn
 google-cloud-storage
 colorama
-fastapi
 uvicorn
-httpx
+fastapi
+python-multipart

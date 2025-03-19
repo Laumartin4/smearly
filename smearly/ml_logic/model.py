@@ -13,8 +13,6 @@ from tensorflow.keras.applications import EfficientNetB0
 
 from smearly.ml_logic.preprocessing import create_image_dataset
 
-
-
 def initialize_cnn_model(input_shape : tuple) -> Model:
     """Initialize Neural Network model
     Args: input_shape (tuple)
@@ -171,85 +169,3 @@ def evaluate_model(model : Model, X_test : np.array, y_test : np.array) -> dict:
     print(f"✅ Model evaluated on {len(X_test)} images with global F1 score : {round(np.mean(evaluation[1]),2)}")
     return evaluation
 
-def predict(model : Model, X : np.array) -> np.array:
-    """Predict"""
-    X_normalized = X / 255.0
-    predictions = model.predict(X_normalized)
-    print("✅ Predictions made")
-    return predictions
-
-
-def save_model(model : Model) -> None:    
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-
-    # Save model locally
-    model_path = os.path.join( "models", f"{timestamp}.h5")
-    model.save(model_path)
-
-    print("✅ Model saved locally")
-    
-    # if MODEL_TARGET == "gcs":
-
-    #     model_filename = model_path.split("/")[-1] # e.g. "20230208-161047.h5" for instance
-    #     client = storage.Client()
-    #     bucket = client.bucket(BUCKET_NAME)
-    #     blob = bucket.blob(f"models/{model_filename}")
-    #     blob.upload_from_filename(model_path)
-
-    #     print("✅ Model saved to GCS")
-
-    #     return None
-
-    return None
-    
-    #### A VERIFIER ###
-    
-def load_model(model_name : str) -> Model:
-    model = tf.keras.models.load_model(model_name)
-    print(f"✅ Model loaded from {model_name}")
-    return model
-
-if __name__ == "__main__":
-    print("🚀 Starting model training")
-    #data_dir_all = "raw_data/all"
-    #data_dir_reduced = "raw_data/reduced"
-    #data_dir_small = "raw_data/resized_data"
-    
-    data = sys.argv[1]
-    
-    train_ds = create_image_dataset(directory= f"{data}/train")
-    val_ds = create_image_dataset(directory= f"{data}/val")
-    model = initialize_cnn_model((224, 224, 3))
-    model = compile_model(model, learning_rate=0.01)
-    model, history = train_model(model, train_ds, validation_data=val_ds,batch_size=32, epochs=100, fine_tuning=True)
-    save_model(model)
-    print("🎉 Model training finished")
-    
-   
-def initialize_enb0_model_layers(input_shape: tuple) -> Model:
-    """Initialize EfficientNetB0 model
-
-    /!\ BEWARE the input pixel values must not be normalized in this model (keep [0-255])
-
-    Args: input_shape (tuple)
-    Returns: Model
-    """
-
-    base_model = EfficientNetB0(input_shape=input_shape, include_top=False, weights="imagenet")
-    base_model.trainable = False
-    x = base_model.output
-    x = layers.GlobalAveragePooling2D()(x)
-    
-    # Add three additional layers before the last layer
-    x = layers.Dense(128, activation='relu')(x)
-    x = layers.Dropout(0.5)(x)  # Optional: Add dropout for regularization
-    x = layers.Dense(64, activation='relu')(x)
-    x = layers.Dense(32, activation='relu')(x)
-    
-    # Output layer
-    prediction = layers.Dense(3, activation='softmax')(x)
-
-    ENB0_model = Model(inputs=base_model.input, outputs=prediction)
-
-    print("✅ EfficientNetB0 model initialized")
-    return ENB0_model
