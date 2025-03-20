@@ -6,8 +6,8 @@ reinstall_package:
 
 download_train_images:
 	mkdir -p raw_data/all
-	wget -P raw_data/all/ --content-disposition 'https://drive.usercontent.google.com/download?id=1rhrLuk-Gt7BN8G6fgJtWn1pQrPfiu_9e&export=download&authuser=0&confirm=t&uuid=4e1ecacb-7813-4231-a700-78aeb639ce2f&at=AEz70l6GNCaI-nPF63PrhmOF3j0P%3A1741964868702'
-	7z x -o raw_data/all/ isbi2025-ps3c-test-dataset.7z
+	wget -P raw_data/all/ --content-disposition 'https://drive.usercontent.google.com/download?id=1q5czzLDE_lQLJlko5Zpb10lUbPwVqkHW&export=download&authuser=0&confirm=t&uuid=f19ce421-e322-4a59-afa8-e7d669fd15e9&at=AEz70l4BbAbUmyZRCll__1846a1T:1742481649161'
+	7z x -oraw_data/all/ raw_data/all/isbi2025-ps3c-train-dataset.7z
 
 merge_unhealthy_bothcells:
 	mkdir -p raw_data/all/unhealthy_bothcells
@@ -28,7 +28,7 @@ run_preprocess:
 
 run_train:
 	#python smearly/ml_logic/model.py
-	nohup python -c 'from smearly.interface.main import train; train()' > train_$(date '+%Y%m%d_%H%m').log &
+	nohup python -c 'from smearly.interface.main import train; train()' > train_$(shell date '+%Y%m%d_%H%m').log &
 
 run_preproc_and_train:
 	$(MAKE) run_preprocess
