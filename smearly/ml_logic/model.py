@@ -122,7 +122,7 @@ def train_model(
     """Train model with support for TensorFlow datasets and NumPy arrays."""
 
     if fine_tuning:
-        MODEL = f"{model}.h5"
+        MODEL = f"model_checkpoint.h5"
 
         modelCheckpoint = callbacks.ModelCheckpoint(MODEL,
                                                     monitor="val_loss",
