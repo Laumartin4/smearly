@@ -61,7 +61,7 @@ Base Model: EfficientNetB0 (pre-trained on ImageNet)
 ```
 
 ### Model Performance
-- **F1 SCORE**: 94.5%
+- **F1 SCORE**: 84%
 
 ### Sources
 - [Kaggle PS3C Challenge](https://www.kaggle.com/competitions/pap-smear-cell-classification-challenge)
